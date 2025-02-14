@@ -4,8 +4,8 @@ import (
     "bytes"
     "encoding/json"
     "fmt"
+    "mime/multipart"  // Changed from just "multipart"
     "net/http"
-    "strings"
 )
 
 type TelegramConfig struct {
