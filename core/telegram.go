@@ -21,6 +21,10 @@ func NewTelegramNotifier(botToken, chatID string) *TelegramNotifier {
 }
 
 func (t *TelegramNotifier) SendMessage(message string) error {
+    if t.botToken == "" || t.chatID == "" {
+        return nil // silently ignore if telegram is not configured
+    }
+
     url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", t.botToken)
     
     payload := map[string]string{
@@ -44,6 +48,10 @@ func (t *TelegramNotifier) SendMessage(message string) error {
 }
 
 func (t *TelegramNotifier) SendFile(filename string, content string) error {
+    if t.botToken == "" || t.chatID == "" {
+        return nil // silently ignore if telegram is not configured
+    }
+
     url := fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", t.botToken)
     
     body := &bytes.Buffer{}
