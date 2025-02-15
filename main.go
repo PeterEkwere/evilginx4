@@ -44,6 +44,7 @@ func showAd() {
 }
 
 func main() {
+	log.Info("[DEBUG] Log level: %v", log.GetLevel())
 	flag.Parse()
 
 	if *version_flag == true {
