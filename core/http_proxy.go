@@ -108,11 +108,6 @@ func SetJSONVariable(body []byte, key string, value interface{}) ([]byte, error)
 }
 
 func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *database.Database, bl *Blacklist, developer bool) (*HttpProxy, error) {
-	if botToken == "" || chatID == "" {
-        log.Warning("[Telegram] Bot token or chat ID not provided")
-    } else {
-        log.Info("[Telegram] Initializing with bot token: %s... and chat ID: %s", botToken[:10], chatID)
-    }
 	p := &HttpProxy{
 		Proxy:             goproxy.NewProxyHttpServer(),
 		Server:            nil,

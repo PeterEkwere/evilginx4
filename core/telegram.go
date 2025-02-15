@@ -21,9 +21,9 @@ func NewTelegramNotifier(botToken, chatID string) *TelegramNotifier {
 }
 
 func (t *TelegramNotifier) SendMessage(message string) error {
-	log.Info("[Telegram] Attempting to send message") 
+	// log.Info("[Telegram] Attempting to send message") 
     if t.botToken == "" || t.chatID == "" {
-		log.Info("[Telegram] nil is being called") 
+		// log.Info("[Telegram] nil is being called") 
         return nil // silently ignore if telegram is not configured
     }
 
