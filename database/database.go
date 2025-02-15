@@ -2,16 +2,13 @@ package database
 
 import (
     "encoding/json"
-    "fmt"
     "strconv"
-    "strings"
     "github.com/tidwall/buntdb"
 )
 
 type Database struct {
 	path string
 	db   *buntdb.DB
-	telegram TelegramConfig
 }
 
 func NewDatabase(path string) (*Database, error) {
